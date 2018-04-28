@@ -7,7 +7,8 @@
 Mixer provides mixin macros, for writing, well, "DRY" code.
 
 The @mix and @premix macros generate custom macros that can add fields to any
-composite struct, preserving parametric types.
+composite struct, preserving parametric types. They can be chained togeth, and
+even play well with @with_kw from Parameters.jl. 
 
 ```juliarepl
 @mix drinks{M,B} begin
