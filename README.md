@@ -57,6 +57,14 @@ julia> punch = Punch(20, 150, 2.5)
 Punch{Int64,Int64,Float64}(20, 15, 12.5) 
 ```
 
+One gotcha is the need to put empty curly braces on s struct with no
+paramateric fields, if it is going to have parametric fields after @mix or
+@premix.
+
+```julia
+@fruitjuice struct Juice{} end
+```
+
 @pour generates simple macros that insert lines of code:
 
 ```julia
