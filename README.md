@@ -1,13 +1,13 @@
 # Mixers
 
+<img src="https://www.giraffescanbake.com/wp-content/uploads/2016/12/Pomegranate-Martini3.gif" data-canonical-src="https://www.giraffescanbake.com/wp-content/uploads/2016/12/Pomegranate-Martini3.gif" width="150" height="210" />
 [![Build Status](https://travis-ci.org/rafaqz/Mixers.jl.svg?branch=master)](https://travis-ci.org/rafaqz/Mixers.jl)
 [![Coverage Status](https://coveralls.io/repos/rafaqz/Mixers.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/rafaqz/Mixers.jl?branch=master)
-<img src="https://www.giraffescanbake.com/wp-content/uploads/2016/12/Pomegranate-Martini3.gif" data-canonical-src="https://www.giraffescanbake.com/wp-content/uploads/2016/12/Pomegranate-Martini3.gif" width="150" height="210" />
 
 Mixer provides mixin macros, for writing, well, "DRY" code.
 
 The @mix and @premix macros generate custom macros that can add fields to any
-composite struct, preserving parametric types. They can be chained togeth, and
+composite struct, preserving parametric types. They can be chained together, and
 even play well with @with_kw from Parameters.jl. 
 
 ```juliarepl
