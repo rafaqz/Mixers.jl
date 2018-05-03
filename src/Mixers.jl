@@ -18,11 +18,10 @@ end
 """
 Generates a mixin macro that preserve parametric types.
 Fields and parametric types are appended to the struct. 
-
 Identical parametric types are merged.
 """
 macro mix(name, block)
-    define(name, block, false)
+    defmacro(name, block, false)
 end
 
 """
@@ -30,41 +29,47 @@ Just like @mix but generated macro insert fields and types
 at the *start* of the definition.
 """
 macro premix(name, block)
-    define(name, block, true)
+    defmacro(name, block, true)
 end
 
-function define(def, block, prepend)
+function defmacro(def, block, prepend)
     @capture(def, mixname_{mixtypes__} | mixname_)
     @capture(block, begin mixfields__ end)
-    mixtypes = mixtypes == nothing ? [] : esc(mixtypes)
-    mixfields = mixfields == nothing ? [] : esc(mixfields)
+    if mixtypes == nothing mixtypes = [] end
+    if mixfields == nothing mixfields = [] end
+    @esc mixname mixtypes mixfields
     return quote
-        macro $(esc(mixname))(ex)
+        macro $mixname(ex)
             prepend = $prepend
             mixfields = $mixfields
             mixtypes = $mixtypes
-            return mixed(ex, mixtypes, mixfields, prepend)
+            return mix(ex, mixtypes, mixfields, prepend)
         end
     end
 end
 
-function mixed(ex, mixtypes, mixfields, prepend)
-
-    matchhead(ex, :curly) do x
+function mix(ex, mixtypes, mixfields, prepend)
+    firsthead(ex, :curly) do x
         x.args = vcat(x.args[1], mergetypes(x.args[2:end], mixtypes, prepend))
     end
-    matchhead(ex, :block) do x
+    firsthead(ex, :block) do x
         x.args = vcat(x.args[1], mergefields(x.args[2:end], mixfields, prepend))
     end
-
     esc(ex)
 end
 
-function matchhead(f, ex, sym) 
+function firsthead(f, ex, sym) 
     if :head in fieldnames(ex)
-        ex.head == sym && f(ex)
-        matchhead.(f, ex.args, sym) 
+        if ex.head == sym 
+            return f(ex)
+        else
+            for arg in ex.args
+                x = firsthead(f, arg, sym)
+                x == nothing || return x
+            end
+        end
     end
+    return nothing
 end
 
 mergetypes(f1, f2, prepend) = prepend ? union(f2, f1) : union(f1, f2)

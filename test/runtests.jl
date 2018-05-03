@@ -62,3 +62,14 @@ function sayhi()
 end
 @test sayhi() == "Hello world"                                                                      
 
+abstract type AbstractBeverage{G} end
+abstract type AbstractGlass end
+type Lowball <: AbstractGlass end
+@premix liquid{L} begin
+    liquid::L
+end
+@liquid mutable struct Beverage{S,G<:AbstractGlass} <: AbstractBeverage{G<:AbstractGlass}
+    salt::S
+    glass::G
+end
+@test fieldnames(Beverage(250.0,2.0,Lowball())) == [:liquid, :salt, :glass]
