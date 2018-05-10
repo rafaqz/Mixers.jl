@@ -11,28 +11,6 @@ The @mix and @premix macros generate custom macros that can add fields to any
 composite struct, preserving parametric types. They can be chained together, and
 even play well with @with_kw from Parameters.jl. 
 
-```juliarepl
-@mix drinks{M,B} begin
-     milkshake::M
-     beer::B
-end
-
-@drinks struct Drinks{J}
-    cola::J
-end
-
-julia> d = Drinks(1.9, 13, 7)
-                  
-Drinks{Float64,Int64,Int64}(1.9, 13, 7)                
-
-julia> fieldnames(d)
-
-3-element Array{Symbol,1}:
- :cola    
- :milkshake
- :beer     
-```
-
 @premix inserts fields and types at the start of the definition:
 
 ```juliarepl
@@ -56,6 +34,31 @@ julia> punch = Punch(20, 150, 2.5)
                
 Punch{Int64,Int64,Float64}(20, 15, 12.5) 
 ```
+
+@mix puts them at the end:
+
+```juliarepl
+@mix drinks{M,B} begin
+     milkshake::M
+     beer::B
+end
+
+@drinks struct Drinks{J}
+    cola::J
+end
+
+julia> d = Drinks(1.9, 13, 7)
+                  
+Drinks{Float64,Int64,Int64}(1.9, 13, 7)                
+
+julia> fieldnames(d)
+
+3-element Array{Symbol,1}:
+ :cola    
+ :milkshake
+ :beer     
+```
+
 
 One gotcha is the need to put empty curly braces on a struct with no
 parametric fields, if it is going to have parametric fields after @mix or
