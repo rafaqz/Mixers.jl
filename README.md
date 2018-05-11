@@ -14,12 +14,12 @@ even play well with @with_kw from Parameters.jl.
 @premix inserts fields and types at the start of the definition:
 
 ```juliarepl
-@premix fruitjuice{P,B} begin
+@premix struct Fruitjuice{P,B}
    pommegranite::P
    orange::B
 end
 
-@fruitjuice struct Punch{L}
+@Fruitjuice struct Punch{L}
     vodka::L
 end
 
@@ -38,25 +38,25 @@ Punch{Int64,Int64,Float64}(20, 15, 12.5)
 @mix puts them at the end:
 
 ```juliarepl
-@mix drinks{M,B} begin
-     milkshake::M
-     beer::B
+@mix struct Soda{M,B}
+    soda::J
 end
 
-@drinks struct Drinks{J}
-    cola::J
+@Soda struct Drink{J}
+    lemon::M
+    lime::B
 end
 
-julia> d = Drinks(1.9, 13, 7)
-                  
-Drinks{Float64,Int64,Int64}(1.9, 13, 7)                
-
-julia> fieldnames(d)
+julia> fieldnames(Drinks)
 
 3-element Array{Symbol,1}:
- :cola    
- :milkshake
- :beer     
+ :lemon
+ :lime     
+ :soda    
+
+julia> d = Drink(1.9, 13, 7)
+                  
+Drink{Float64,Int64,Int64}(1.9, 13, 7)                
 ```
 
 
@@ -65,7 +65,7 @@ parametric fields, if it is going to have parametric fields after @mix or
 @premix.
 
 ```julia
-@fruitjuice struct Juice{} end
+@Fruitjuice struct Juice{} end
 ```
 
 @pour generates simple macros that insert lines of code:

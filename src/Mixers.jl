@@ -20,21 +20,21 @@ Generates a mixin macro that preserve parametric types.
 Fields and parametric types are appended to the struct. 
 Identical parametric types are merged.
 """
-macro mix(name, block)
-    defmacro(name, block, false)
+macro mix(ex)
+    defmacro(ex, false)
 end
 
 """
 Just like @mix but generated macro insert fields and types 
 at the *start* of the definition.
 """
-macro premix(name, block)
-    defmacro(name, block, true)
+macro premix(ex)
+    defmacro(ex, true)
 end
 
-function defmacro(def, block, prepend)
-    @capture(def, mixname_{mixtypes__} | mixname_)
-    @capture(block, begin mixfields__ end)
+function defmacro(ex, prepend)
+    @capture(ex.args[2], mixname_{mixtypes__} | mixname_ )
+    mixfields = firsthead(ex, :block).args
     if mixtypes == nothing mixtypes = [] end
     if mixfields == nothing mixfields = [] end
     @esc mixname mixtypes mixfields
@@ -57,6 +57,8 @@ function mix(ex, mixtypes, mixfields, prepend)
     end
     esc(ex)
 end
+
+firsthead(ex, sym) = firsthead(x->x, ex, sym) 
 
 function firsthead(f, ex, sym) 
     if :head in fieldnames(ex)
