@@ -33,33 +33,52 @@ macro premix(ex)
 end
 
 function defmacro(ex, prepend)
-    @capture(ex.args[2], mixname_{mixtypes__} | mixname_ )
+    macros = []
+    findhead(x -> push!(macros, x.args[1]), ex, :macrocall)
+    @capture(firsthead(ex, :type).args[2], mixname_{mixtypes__} | mixname_ )
     mixfields = firsthead(ex, :block).args
+
     if mixtypes == nothing mixtypes = [] end
     if mixfields == nothing mixfields = [] end
-    @esc mixname mixtypes mixfields
+
+    @esc macros mixname mixtypes mixfields
     return quote
         macro $mixname(ex)
-            prepend = $prepend
-            mixfields = $mixfields
+            macros = $macros
             mixtypes = $mixtypes
-            return mix(ex, mixtypes, mixfields, prepend)
+            mixfields = $mixfields
+            prepend = $prepend
+            return mix(ex, macros, mixtypes, mixfields, prepend)
         end
     end
 end
 
-function mix(ex, mixtypes, mixfields, prepend)
+function mix(ex, macros, mixtypes, mixfields, prepend)
     firsthead(ex, :curly) do x
         x.args = vcat(x.args[1], mergetypes(x.args[2:end], mixtypes, prepend))
     end
     firsthead(ex, :block) do x
         x.args = vcat(x.args[1], mergefields(x.args[2:end], mixfields, prepend))
     end
+    for mac in reverse(macros)
+        ex = Expr(:macrocall, mac, ex)
+    end
     esc(ex)
 end
 
-firsthead(ex, sym) = firsthead(x->x, ex, sym) 
+function findhead(f, ex, sym) 
+    found = false
+    if :head in fieldnames(ex)
+        if ex.head == sym
+            f(ex)
+            found = true
+        end
+        found |= any(findhead.(f, ex.args, sym))
+    end
+    return found
+end
 
+firsthead(ex, sym) = firsthead(x->x, ex, sym) 
 function firsthead(f, ex, sym) 
     if :head in fieldnames(ex)
         if ex.head == sym 

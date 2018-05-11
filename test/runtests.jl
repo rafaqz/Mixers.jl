@@ -2,6 +2,7 @@ using Revise
 using Mixers
 using Base.Test
 using MacroTools
+using Parameters
 
 # @premix
 
@@ -74,6 +75,18 @@ end
 end
 @test fieldnames(Beverage(250.0,2.0,Lowball())) == [:liquid, :salt, :glass]
 
+# macro composition
+
+@mix @with_kw struct Softdrinks
+    cola::Float64 = 1.5
+    lemonade::Float64 = 2.0
+end
+
+@Softdrinks struct Fridge end
+@Softdrinks struct Esky 
+    beer::Int = 6
+end
+
 # @pour
 
 @pour hello begin
@@ -83,3 +96,28 @@ function sayhi()
    @hello
 end
 @test sayhi() == "Hello world"                                                                      
+
+
+abstract type AbstractJarvisTemp end
+
+@mix @with_kw struct JT{T}
+    tmax::T = 1
+    tref::T = 2
+    t0::T  = 2
+end
+
+struct JarvisNoTemp <: AbstractJarvisTemp end
+@JT mutable struct JarvisTemp1{} <: AbstractJarvisTemp end
+@JT mutable struct JarvisTemp2{} <: AbstractJarvisTemp end
+
+abstract type AbstractJarvisTemp end
+
+@mix struct JT{T}
+    tmax::T = 1.0u"°C"
+    tref::T = 1.0u"°C"
+    t0::T = 1.0u"°C"
+end
+
+struct JarvisNoTemp <: AbstractJarvisTemp end
+@JT mutable struct JarvisTemp1{} <: AbstractJarvisTemp end
+@JT mutable struct JarvisTemp2{} <: AbstractJarvisTemp end
