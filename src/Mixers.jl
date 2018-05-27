@@ -17,7 +17,7 @@ end
 
 """
 Generates a mixin macro that preserve parametric types.
-Fields and parametric types are appended to the struct. 
+Fields and parametric types are appended to the struct.
 Identical parametric types are merged.
 """
 macro mix(ex)
@@ -25,7 +25,7 @@ macro mix(ex)
 end
 
 """
-Just like @mix but generated macro insert fields and types 
+Just like @mix but generated macro insert fields and types
 at the *start* of the definition.
 """
 macro premix(ex)
@@ -33,40 +33,84 @@ macro premix(ex)
 end
 
 function defmacro(ex, prepend)
-    @capture(ex.args[2], mixname_{mixtypes__} | mixname_ )
+    # get chained macros
+    macros = chain_macros!([], ex)
+
+    # get name and parametric types
+    @capture(firsthead(ex, :type).args[2], mixname_{mixtypes__} | mixname_ )
+    # get fields
     mixfields = firsthead(ex, :block).args
+
+    # deal with empty values
     if mixtypes == nothing mixtypes = [] end
     if mixfields == nothing mixfields = [] end
-    @esc mixname mixtypes mixfields
+
+    @esc macros mixname mixtypes mixfields
     return quote
         macro $mixname(ex)
-            prepend = $prepend
-            mixfields = $mixfields
+            macros = $macros
             mixtypes = $mixtypes
-            return mix(ex, mixtypes, mixfields, prepend)
+            mixfields = $mixfields
+            prepend = $prepend
+            return mix(ex, macros, mixtypes, mixfields, prepend)
         end
     end
 end
 
-function mix(ex, mixtypes, mixfields, prepend)
+function mix(ex, macros, mixtypes, mixfields, prepend)
+    # merge type parameters
     firsthead(ex, :curly) do x
         x.args = vcat(x.args[1], mergetypes(x.args[2:end], mixtypes, prepend))
     end
+    # merge fields
     firsthead(ex, :block) do x
         x.args = vcat(x.args[1], mergefields(x.args[2:end], mixfields, prepend))
     end
+
+    localmacros = chain_macros!([], ex)
+
+    # get struct without macros
+    firsthead(x -> ex = x, ex, :type)
+
+    # wrap local and mixed macros around the struct
+    for mac in reverse(union(localmacros, macros))
+        ex = Expr(:macrocall, mac, ex)
+    end
+
     esc(ex)
 end
 
-firsthead(ex, sym) = firsthead(x->x, ex, sym) 
-
-function firsthead(f, ex, sym) 
+function chain_macros!(macros, ex)
     if :head in fieldnames(ex)
-        if ex.head == sym 
+        if ex.head == :macrocall
+            push!(macros, ex.args[1])
+            chain_macros!(macros, ex.args[2])
+        end
+    end
+    macros
+end
+
+function findhead(f, ex, match)
+    found = false
+    if :head in fieldnames(ex)
+        if ex.head == match
+            f(ex)
+            found = true
+        end
+        found |= any(findhead.(f, ex.args, match))
+    end
+    return found
+end
+
+firsthead(ex, match) = firsthead(x->x, ex, match)
+
+function firsthead(f, ex, match)
+    if :head in fieldnames(ex)
+        if ex.head == match
             return f(ex)
         else
             for arg in ex.args
-                x = firsthead(f, arg, sym)
+                x = firsthead(f, arg, match)
                 x == nothing || return x
             end
         end
@@ -75,6 +119,6 @@ function firsthead(f, ex, sym)
 end
 
 mergetypes(f1, f2, prepend) = prepend ? union(f2, f1) : union(f1, f2)
-mergefields(t1, t2, prepend) = prepend ? vcat(t2, t1) : vcat(t1, t2) 
+mergefields(t1, t2, prepend) = prepend ? vcat(t2, t1) : vcat(t1, t2)
 
 end # module
