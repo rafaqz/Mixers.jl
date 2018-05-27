@@ -3,8 +3,9 @@ using Mixers
 using Base.Test
 using MacroTools
 using Parameters
+using Unitful
 
-# @premix
+# @premix macro
 
 @premix struct Premixdrinks{M,B}
    milkshake::M
@@ -17,27 +18,29 @@ end
 
 d = Drinks(1.9, 13, 7)
 @test fieldnames(d) == [:milkshake, :beer, :juice]
-d.milkshake = 5.5
+@test d.milkshake == 1.9
 
 # Redeclaring doesn't error:
 @Premixdrinks mutable struct Drinks{J}
    juice::J
 end
 
-# @mix
+# @mix macro
 
-@mix struct Addfruits{P,B}
+@mix struct Fruits{P,B}
    pommegranite::P
    banana::B
 end
 
+# Can also use with a parent type <: Food
 abstract type Food end
-@Addfruits struct GoodFood{B,Pu} <: Food
+@Fruits struct GoodFood{B,Pu} <: Food
     beans::B
     pudding::Pu
 end
 @test fieldnames(GoodFood) == [:beans, :pudding, :pommegranite, :banana]
 
+# Type parameters work as expected
 @test_throws MethodError GoodFood(:none, 1.5, 2, "lots") 
 gf = GoodFood(:none, 1.5, 2, :lots)
 @test gf.pommegranite == 2
@@ -50,22 +53,24 @@ gf = GoodFood(:none, 1.5, 2, :lots)
     weetbix::W
     pumpkin::Pu
 end
-
 bf = BadFood(0, -1000.0)
 @test fieldnames(bf) == [:weetbix, :pumpkin]
+
+# Empty things staty empty
 @Nofruits immutable NoFood end 
 @test fieldnames(NoFood) == []
 
+# Empty things with {} can have type parameters added
 abstract type AbstractPunch end
-@Addfruits type Punch{} <: AbstractPunch end
+@Fruits type Punch{} <: AbstractPunch end
 @test fieldnames(Punch(1,2)) == [:pommegranite, :banana]
-    
 
 # Inheritance
 
 abstract type AbstractBeverage{G} end
 abstract type AbstractGlass end
 type Lowball <: AbstractGlass end
+
 @premix struct Liquid{L}
     liquid::L
 end
@@ -74,18 +79,41 @@ end
     glass::G
 end
 @test fieldnames(Beverage(250.0,2.0,Lowball())) == [:liquid, :salt, :glass]
+@test Beverage <: AbstractBeverage
+
 
 # macro composition
-
 @mix @with_kw struct Softdrinks
-    cola::Float64 = 1.5
-    lemonade::Float64 = 2.0
+    cola::Float64 = 1.5u"L"
+    lemonade::Float64 = 2.0u"L"
 end
 
+# @with_kw works with no local macro
 @Softdrinks struct Fridge end
-@Softdrinks struct Esky 
-    beer::Int = 6
+
+# @with_kw is merged with local macro
+@Softdrinks @with_kw struct Esky 
+    beer::Int = 6u"L"
 end
+
+@Softdrinks @mix struct AllDrinks
+    juice::Int = 6u"L"
+end
+
+# mix chaining and @with_kw macro chaining
+@AllDrinks struct Icebox
+    ice::Int = 100 
+end
+
+# mix chaining and @with_kw macro chaining
+@AllDrinks struct Icebox
+    ice::Int = 100 
+end
+
+@AllDrinks struct Icebox
+    ice::Int = 5u"kg" 
+end
+
 
 # @pour
 
@@ -96,28 +124,3 @@ function sayhi()
    @hello
 end
 @test sayhi() == "Hello world"                                                                      
-
-
-abstract type AbstractJarvisTemp end
-
-@mix @with_kw struct JT{T}
-    tmax::T = 1
-    tref::T = 2
-    t0::T  = 2
-end
-
-struct JarvisNoTemp <: AbstractJarvisTemp end
-@JT mutable struct JarvisTemp1{} <: AbstractJarvisTemp end
-@JT mutable struct JarvisTemp2{} <: AbstractJarvisTemp end
-
-abstract type AbstractJarvisTemp end
-
-@mix struct JT{T}
-    tmax::T = 1.0u"°C"
-    tref::T = 1.0u"°C"
-    t0::T = 1.0u"°C"
-end
-
-struct JarvisNoTemp <: AbstractJarvisTemp end
-@JT mutable struct JarvisTemp1{} <: AbstractJarvisTemp end
-@JT mutable struct JarvisTemp2{} <: AbstractJarvisTemp end
