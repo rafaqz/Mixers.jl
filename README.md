@@ -8,15 +8,16 @@
 Mixer provides mixin macros, for writing, well, "DRY" code.
 
 The @mix and @premix macros generate custom macros that can add fields to any
-composite struct, preserving parametric types and macros. They can be chained
-together, and play well with @with_kw from Parameters.jl. 
+struct, preserving parametric types and macros such as @with_kw from
+Parameters.jl. @mix and @premix macros can also be applied to @mix macros, allowing 
+a kind of mixin inheritance.
 
 @premix inserts fields and types at the start of the definition:
 
 ```juliarepl
 @premix struct Fruitjuice{P,B}
-   pommegranite::P
-   orange::B
+    pommegranite::P
+    orange::B
 end
 
 @Fruitjuice struct Punch{L}
@@ -59,18 +60,24 @@ julia> fieldnames(Drinks)
 ```
 
 Notice how we added that @with_kw to Soda but left it off Drinks? Inheritable
-macro chains are a thing.
+macro chains are a thing!
 
+The only thing @mix does *not* preserve is parent abstract types, like 
+`@mix struct Lemonade <: AbstractDrink`. These can't really be mixed in as types 
+can only have one parent, so we keep thing simple and add type inheritance on the actual 
+struct. If there is anything else @mix ignores that it shouldn't, open an issue.
 
 One gotcha is the need to put empty curly braces on a struct with no
 parametric fields, if it is going to have parametric fields after @mix or
-@premix.
+@premix. This keeps Mixers.jl code simple, and is a clear visual reminder 
+that the struct is actually parametrically typed:
 
 ```julia
 @Fruitjuice struct Juice{} end
 ```
 
-@pour generates simple macros that insert lines of code:
+Lastly, @pour is a basic version of @mix. It generates simple macros that insert lines of code. 
+It doesn't have to be used with structs:
 
 ```julia
 @pour milk begin
