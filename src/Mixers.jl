@@ -90,18 +90,6 @@ function chain_macros!(macros, ex)
     macros
 end
 
-function findhead(f, ex, match)
-    found = false
-    if :head in fieldnames(ex)
-        if ex.head == match
-            f(ex)
-            found = true
-        end
-        found |= any(findhead.(f, ex.args, match))
-    end
-    return found
-end
-
 firsthead(ex, match) = firsthead(x->x, ex, match)
 
 function firsthead(f, ex, match)
