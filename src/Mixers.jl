@@ -1,3 +1,5 @@
+__precompile__()
+
 module Mixers
 
 using MacroTools
@@ -66,7 +68,6 @@ function mix(ex, macros, mixtypes, mixfields, prepend)
     firsthead(ex, :block) do x
         x.args = vcat(x.args[1], mergefields(x.args[2:end], mixfields, prepend))
     end
-
     localmacros = chain_macros!([], ex)
 
     # get struct without macros
