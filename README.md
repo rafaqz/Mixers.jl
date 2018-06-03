@@ -5,7 +5,9 @@
 [![Build Status](https://travis-ci.org/rafaqz/Mixers.jl.svg?branch=master)](https://travis-ci.org/rafaqz/Mixers.jl)
 [![Coverage Status](https://coveralls.io/repos/rafaqz/Mixers.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/rafaqz/Mixers.jl?branch=master)
 
-Mixer provides mixin macros, for writing, well, "DRY" code.
+Mixers.jl provides mixin macros, for writing, well, "DRY" code. 
+
+Mixers useful when types share a subset of fields but have no common concrete type, or adding one would add unnecessary, annoying nesting. Generally it shouldn't be a replacement for regular composition!
 
 The @mix and @premix macros generate custom macros that can add fields to any
 struct, preserving parametric types and macros such as @with_kw from
