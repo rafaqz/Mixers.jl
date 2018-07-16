@@ -82,7 +82,7 @@ function mix(ex, macros, mixtypes, mixfields, prepend)
 end
 
 function chain_macros!(macros, ex)
-    if :head in fieldnames(ex)
+    if isdefined(ex, :head)
         if ex.head == :macrocall
             push!(macros, ex.args[1])
             chain_macros!(macros, ex.args[2])
@@ -94,7 +94,7 @@ end
 firsthead(ex, match) = firsthead(x->x, ex, match)
 
 function firsthead(f, ex, match)
-    if :head in fieldnames(ex)
+    if isdefined(ex, :head)
         if ex.head == match
             return f(ex)
         else
@@ -104,7 +104,7 @@ function firsthead(f, ex, match)
             end
         end
     end
-    return nothing
+    nothing
 end
 
 mergetypes(f1, f2, prepend) = prepend ? union(f2, f1) : union(f1, f2)

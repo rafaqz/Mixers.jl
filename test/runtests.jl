@@ -56,7 +56,7 @@ end
 bf = BadFood(0, -1000.0)
 @test fieldnames(bf) == [:weetbix, :pumpkin]
 
-# Empty things staty empty
+# Empty things stay empty
 @Nofruits immutable NoFood end 
 @test fieldnames(NoFood) == []
 
@@ -66,7 +66,6 @@ abstract type AbstractPunch end
 @test fieldnames(Punch(1,2)) == [:pommegranite, :banana]
 
 # Inheritance
-
 abstract type AbstractBeverage{G} end
 abstract type AbstractGlass end
 type Lowball <: AbstractGlass end
@@ -116,7 +115,6 @@ end
 
 
 # @pour
-
 @pour hello begin
     "Hello world"
 end
