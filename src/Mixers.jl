@@ -36,10 +36,10 @@ end
 
 function defmacro(ex, prepend)
     # get chained macros
-    macros = chain_macros!([], ex)
+    macros = chain_macros(ex)
 
     # get name and parametric types
-    @capture(firsthead(ex, :type).args[2], mixname_{mixtypes__} | mixname_ )
+    @capture(firsthead(ex, :struct).args[2], mixname_{mixtypes__} | mixname_ )
     # get fields
     mixfields = firsthead(ex, :block).args
 
@@ -68,44 +68,42 @@ function mix(ex, macros, mixtypes, mixfields, prepend)
     firsthead(ex, :block) do x
         x.args = vcat(x.args[1], mergefields(x.args[2:end], mixfields, prepend))
     end
-    localmacros = chain_macros!([], ex)
+    macros = reverse(union(chain_macros(ex), macros))
 
     # get struct without macros
-    firsthead(x -> ex = x, ex, :type)
+    firsthead(x -> ex = x, ex, :struct)
 
     # wrap local and mixed macros around the struct
-    for mac in reverse(union(localmacros, macros))
-        ex = Expr(:macrocall, mac, ex)
+    for mac in macros
+        ex = Expr(:macrocall, mac, LineNumberNode(80, "Mixers.jl"), ex)
     end
-
     esc(ex)
 end
 
-function chain_macros!(macros, ex)
-    if isdefined(ex, :head)
-        if ex.head == :macrocall
-            push!(macros, ex.args[1])
-            chain_macros!(macros, ex.args[2])
-        end
+chain_macros(ex) = chain_macros!([], ex)
+
+chain_macros!(macros, ex::Expr) =
+    if ex.head == :macrocall
+        push!(macros, ex.args[1])
+        chain_macros!(macros, ex.args[2])
+    else
+        macros
     end
-    macros
-end
+chain_macros!(macros, ex) = macros
 
 firsthead(ex, match) = firsthead(x->x, ex, match)
 
-function firsthead(f, ex, match)
-    if isdefined(ex, :head)
-        if ex.head == match
-            return f(ex)
-        else
-            for arg in ex.args
-                x = firsthead(f, arg, match)
-                x == nothing || return x
-            end
+firsthead(f, ex::Expr, match) = 
+    if ex.head == match
+        return f(ex)
+    else
+        for arg in ex.args
+            x = firsthead(f, arg, match)
+            x == nothing || return x
         end
+        return nothing
     end
-    nothing
-end
+firsthead(f, ex, match) = nothing
 
 mergetypes(f1, f2, prepend) = prepend ? union(f2, f1) : union(f1, f2)
 mergefields(t1, t2, prepend) = prepend ? vcat(t2, t1) : vcat(t1, t2)

@@ -1,11 +1,18 @@
-using Revise
-using Mixers
-using Base.Test
-using MacroTools
-using Parameters
-using Unitful
+using Mixers,
+      Test,
+      MacroTools,
+      Parameters,
+      Unitful
 
 # @premix macro
+
+q = quote @premix struct Premixdrinks{M,B}
+       milkshake::M
+       beer::B
+    end
+end
+
+Mixers.defmacro(q, true)
 
 @premix struct Premixdrinks{M,B}
    milkshake::M
@@ -16,8 +23,8 @@ end
    juice::J
 end
 
+@test fieldnames(Drinks) == (:milkshake, :beer, :juice)
 d = Drinks(1.9, 13, 7)
-@test fieldnames(d) == [:milkshake, :beer, :juice]
 @test d.milkshake == 1.9
 
 # Redeclaring doesn't error:
@@ -25,93 +32,100 @@ d = Drinks(1.9, 13, 7)
    juice::J
 end
 
+
 # @mix macro
-
-@mix struct Fruits{P,B}
-   pommegranite::P
-   banana::B
+@mix struct Fruits{P,S}
+   mango::P
+   lime::S
 end
+@mix struct NoFruits end
 
-# Can also use with a parent type <: Food
-abstract type Food end
-@Fruits struct GoodFood{B,Pu} <: Food
-    beans::B
-    pudding::Pu
+# Can also use with a parent struct <: Smoothie
+abstract type Cocktail end
+@Fruits struct Daiquiri{S,M} <: Cocktail
+    sugar::S
+    rum::M
 end
-@test fieldnames(GoodFood) == [:beans, :pudding, :pommegranite, :banana]
+@test fieldnames(Daiquiri) == (:sugar, :rum, :mango, :lime)
 
 # Type parameters work as expected
-@test_throws MethodError GoodFood(:none, 1.5, 2, "lots") 
-gf = GoodFood(:none, 1.5, 2, :lots)
-@test gf.pommegranite == 2
-@test gf.banana == :lots
-@test gf.beans == :none
-@test gf.pudding == 1.5
+@test_throws MethodError Daiquiri(:none, 1.5, 2, "lots") 
+dq = Daiquiri(:none, 1.5, 2, :lots)
+@test dq.mango == 2
+@test dq.lime == :lots
+@test dq.sugar == :none
+@test dq.rum == 1.5
 
-@mix struct Nofruits end
-@Nofruits type BadFood{W,Pu} <: Food
-    weetbix::W
-    pumpkin::Pu
-end
-bf = BadFood(0, -1000.0)
-@test fieldnames(bf) == [:weetbix, :pumpkin]
 
 # Empty things stay empty
-@Nofruits immutable NoFood end 
-@test fieldnames(NoFood) == []
+@NoFruits struct GlassHalfEmpty end 
+@test fieldnames(GlassHalfEmpty) == () 
+
 
 # Empty things with {} can have type parameters added
 abstract type AbstractPunch end
-@Fruits type Punch{} <: AbstractPunch end
-@test fieldnames(Punch(1,2)) == [:pommegranite, :banana]
+@Fruits struct Punch{} <: AbstractPunch end
+@test fieldnames(Punch) == (:mango, :lime)
+
+
 
 # Inheritance
 abstract type AbstractBeverage{G} end
 abstract type AbstractGlass end
-type Lowball <: AbstractGlass end
+struct Lowball <: AbstractGlass end
 
 @premix struct Liquid{L}
     liquid::L
 end
-@Liquid mutable struct Beverage{S,G<:AbstractGlass} <: AbstractBeverage{G<:AbstractGlass}
+@Liquid mutable struct Beverage{S,G<:AbstractGlass} <: AbstractBeverage{G}
     salt::S
     glass::G
 end
-@test fieldnames(Beverage(250.0,2.0,Lowball())) == [:liquid, :salt, :glass]
+@test fieldnames(Beverage) == (:liquid, :salt, :glass)
 @test Beverage <: AbstractBeverage
 
 
+
 # macro composition
-@mix @with_kw struct Softdrinks
-    cola::Float64 = 1.5u"L"
-    lemonade::Float64 = 2.0u"L"
+@mix @with_kw struct Softdrinks{C,L}
+    cola::C = 1.5u"L"
+    lemonade::L = 2.0u"L"
 end
 
 # @with_kw works with no local macro
-@Softdrinks struct Fridge end
+@Softdrinks struct Fridge{} end
+
+fridge = Fridge()
+@test fridge.cola == 1.5u"L"
+@test fridge.lemonade == 2.0u"L"
 
 # @with_kw is merged with local macro
-@Softdrinks @with_kw struct Esky 
-    beer::Int = 6u"L"
+@Softdrinks @with_kw struct Esky{B} 
+    beer::B = 6u"L"
 end
 
-@Softdrinks @mix struct AllDrinks
-    juice::Int = 6u"L"
+esky = Esky()
+@test esky.lemonade == 2.0u"L"
+@test esky.beer == 6u"L"
+
+
+# Nested @mix
+@Softdrinks @mix struct BagODrinks{J}
+    juice::J = 3u"L"
 end
 
-# mix chaining and @with_kw macro chaining
-@AllDrinks struct Icebox
-    ice::Int = 100 
+@BagODrinks struct Icebox{I}
+    ice::I = 5u"kg" 
 end
 
-# mix chaining and @with_kw macro chaining
-@AllDrinks struct Icebox
-    ice::Int = 100 
-end
+@test fieldnames(Icebox) == (:ice, :juice, :cola, :lemonade)
 
-@AllDrinks struct Icebox
-    ice::Int = 5u"kg" 
-end
+icebox = Icebox()
+@test icebox.cola == 1.5u"L"
+@test icebox.lemonade == 2.0u"L"
+@test icebox.juice == 3u"L"
+@test icebox.ice == 5u"kg"
+
 
 
 # @pour
