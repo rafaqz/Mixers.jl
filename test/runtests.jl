@@ -34,15 +34,15 @@ end
 
 
 # @mix macro
-@mix struct Fruits{P,S}
+@mix struct Juice{P,S}
    mango::P
    lime::S
 end
-@mix struct NoFruits end
+@mix struct NoJuice end
 
 # Can also use with a parent struct <: Smoothie
 abstract type Cocktail end
-@Fruits struct Daiquiri{S,M} <: Cocktail
+@Juice struct Daiquiri{S,M} <: Cocktail
     sugar::S
     rum::M
 end
@@ -58,13 +58,13 @@ dq = Daiquiri(:none, 1.5, 2, :lots)
 
 
 # Empty things stay empty
-@NoFruits struct GlassHalfEmpty end 
-@test fieldnames(GlassHalfEmpty) == () 
+@NoJuice immutable Empty end 
+@test fieldnames(Empty) == () 
 
 
 # Empty things with {} can have type parameters added
 abstract type AbstractPunch end
-@Fruits struct Punch{} <: AbstractPunch end
+@Juice struct Punch{} <: AbstractPunch end
 @test fieldnames(Punch) == (:mango, :lime)
 
 

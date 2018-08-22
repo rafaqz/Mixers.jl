@@ -36,7 +36,7 @@ end
 
 function defmacro(ex, prepend)
     # get chained macros
-    macros = chain_macros(ex)
+    macros = chained_macros(ex)
 
     # get name and parametric types
     @capture(firsthead(ex, :struct).args[2], mixname_{mixtypes__} | mixname_ )
@@ -68,31 +68,31 @@ function mix(ex, macros, mixtypes, mixfields, prepend)
     firsthead(ex, :block) do x
         x.args = vcat(x.args[1], mergefields(x.args[2:end], mixfields, prepend))
     end
-    macros = reverse(union(chain_macros(ex), macros))
+
+    localmacros = chained_macros(ex)
 
     # get struct without macros
     firsthead(x -> ex = x, ex, :struct)
 
     # wrap local and mixed macros around the struct
-    for mac in macros
-        ex = Expr(:macrocall, mac, LineNumberNode(80, "Mixers.jl"), ex)
+    for mac in reverse(union(localmacros, macros))
+        ex = Expr(:macrocall, mac, LineNumberNode(79, "Mixers.jl"), ex)
     end
     esc(ex)
 end
 
-chain_macros(ex) = chain_macros!([], ex)
 
-chain_macros!(macros, ex::Expr) =
+chained_macros(ex) = chained_macros!(Symbol[], ex) 
+chained_macros!(macros, ex) = macros
+chained_macros!(macros, ex::Expr) = begin
     if ex.head == :macrocall
         push!(macros, ex.args[1])
-        chain_macros!(macros, ex.args[2])
-    else
-        macros
+        length(ex.args) > 2 && chained_macros!(macros, ex.args[3])
     end
-chain_macros!(macros, ex) = macros
+    macros
+end
 
 firsthead(ex, match) = firsthead(x->x, ex, match)
-
 firsthead(f, ex::Expr, match) = 
     if ex.head == match
         return f(ex)
