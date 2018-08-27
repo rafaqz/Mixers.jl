@@ -58,7 +58,7 @@ dq = Daiquiri(:none, 1.5, 2, :lots)
 
 
 # Empty things stay empty
-@NoJuice immutable Empty end 
+@NoJuice struct Empty end 
 @test fieldnames(Empty) == () 
 
 
