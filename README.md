@@ -8,7 +8,9 @@
 
 Mixers.jl provides mixin macros, for writing, well, "DRY" code. 
 
-Mixers useful when types share a subset of fields but have no common concrete type, or adding one would add unnecessary, annoying nesting. Generally it shouldn't be a replacement for regular composition!
+Mixers useful when types share a subset of fields but have no common concrete
+type, or adding one would add unnecessary, annoying nesting. Generally it
+shouldn't be a replacement for regular composition.
 
 The @mix and @premix macros generate custom macros that can add fields to any
 struct, preserving parametric types and macros such as @with_kw from
@@ -78,6 +80,20 @@ that the struct is actually parametrically typed:
 ```julia
 @Fruitjuice struct Juice{} end
 ```
+
+To make mixins usable in other modules or scripts, qualify types with the module
+name :
+
+```julia
+@mix struct Juice{A, B<:MyModule.MyType} end
+    a::MyModule.MyType
+    b::B
+end
+```
+
+(this may or may not be a good idea - Mixers was intended for code reuse inside a module)
+
+
 
 Lastly, @pour is a basic version of @mix. It generates simple macros that insert lines of code. 
 It doesn't have to be used with structs:
