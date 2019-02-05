@@ -103,7 +103,7 @@ firsthead(f, ex::Expr, match) =
     end
 firsthead(f, ex, match) = nothing
 
-mergetypes(f1, f2, prepend) = prepend ? union(f2, f1) : union(f1, f2)
-mergefields(t1, t2, prepend) = prepend ? vcat(t2, t1) : vcat(t1, t2)
+mergetypes(t1, t2, prepend) = prepend ? union(t2, t1) : union(t1, t2)
+mergefields(f1, f2, prepend) = prepend ? vcat(f2, f1) : vcat(f1, f2)
 
 end # module
