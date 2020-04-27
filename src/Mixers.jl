@@ -117,7 +117,7 @@ macro stack(into, structs...)
     fields = []
     for _struct in structs
         names = fieldnames(getfield(__module__, _struct))
-        types = fieldtypes(getfield(__module__, _struct))
+        types = [fieldtype(getfield(__module__, _struct), field) for field in names]
         for (n, t) in zip(names, types)
             push!(fields, :($n::$t))
         end
