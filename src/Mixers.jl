@@ -74,7 +74,7 @@ function mix(ex, macros, mixtypes, mixfields, prepend)
 
     # wrap local and mixed macros around the struct
     for mac in reverse(union(localmacros, macros))
-        ex = Expr(:macrocall, mac, LineNumberNode(79, "Mixers.jl"), ex)
+        ex = Expr(:macrocall, mac, LineNumberNode(79, Symbol("Mixers.jl")), ex)
     end
     esc(ex)
 end
