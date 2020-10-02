@@ -7,7 +7,7 @@
 
 Mixers.jl provides mixin macros, for writing, well, "DRY" code. 
 
-Mixers useful when types share a subset of fields but have no common concrete
+Mixers are useful when types share a subset of fields but have no common concrete
 type, or adding one would add unnecessary, annoying nesting. Generally it
 shouldn't be a replacement for regular composition.
 
