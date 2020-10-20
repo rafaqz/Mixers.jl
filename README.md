@@ -18,7 +18,7 @@ a kind of mixin inheritance.
 
 @premix inserts fields and types at the start of the definition:
 
-```juliarepl
+```julia
 @premix struct Fruitjuice{P,B}
     pommegranite::P
     orange::B
@@ -42,7 +42,7 @@ Punch{Int64,Int64,Float64}(20, 15, 12.5)
 
 @mix puts them at the end:
 
-```juliarepl
+```julia
 using Parameters
 using Unitful
 
