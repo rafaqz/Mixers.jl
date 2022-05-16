@@ -80,7 +80,7 @@ function mix(ex, macros, mixtypes, mixfields, prepend)
 end
 
 
-chained_macros(ex) = chained_macros!(Symbol[], ex) 
+chained_macros(ex) = chained_macros!(Union{Symbol, Expr}[], ex) 
 chained_macros!(macros, ex) = macros
 chained_macros!(macros, ex::Expr) = begin
     if ex.head == :macrocall
