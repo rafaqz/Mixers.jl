@@ -1,7 +1,7 @@
 name = "Mixers"
 uuid = "2a8e4939-dab8-5edc-8f64-72a8776f13de"
 authors = ["Rafael Schouten <rafaelschouten@gmail.com>"]
-version = "0.1.1"
+version = "0.1.2"
 
 [deps]
 MacroTools = "1914dd2f-81c6-5fcd-8719-6d5c9610ff09"
