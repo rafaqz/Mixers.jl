@@ -5,6 +5,23 @@
 [![Build Status](https://travis-ci.org/rafaqz/Mixers.jl.svg?branch=master)](https://travis-ci.org/rafaqz/Mixers.jl)
 [![codecov.io](http://codecov.io/github/rafaqz/Mixers.jl/coverage.svg?branch=master)](http://codecov.io/github/rafaqz/Mixers.jl?branch=master)
 
+> [!CAUTION]
+> While this package is very self-contained, and has worked for years without maintenance,
+> it is not actively developed.
+>
+> Thats because using it is a bad idea. 
+> Its the kind of thing you want when you come from an OOP language and don't understand multiple dispatch yet.
+> Thats why I wrote it originally (my first Julia package) but I havn't used it for years.
+>
+> Instead of using Mixers.jl, define default getter methods for your shared fields on
+> the abstract supertype, use [composition over inheritance](https://en.wikipedia.org/wiki/Composition_over_inheritance)
+> patterns to group fields into objects, and just write out the fields in your concrete types manually.
+>
+> Fields should be only a few extra lines of code - or your likely not doing composition proper;y.
+> Written out fields are readable to anyone working on your package. They also gives you better
+> flexibility refactoring - you can even jsut replace a field with a default value if you don't
+> need it to be stored.
+
 Mixers.jl provides mixin macros, for writing, well, "DRY" code. 
 
 Mixers are useful when types share a subset of fields but have no common concrete
